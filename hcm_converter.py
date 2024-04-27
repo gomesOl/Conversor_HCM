@@ -5,26 +5,22 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-# acessa dados dos DataFrames, realiza a conversão e substitui os valores das colunas existentes
+# acessa dados dos DataFrames, realiza a conversão e cria novas colunas para acomodar os dados convertidos nas devidas classificações
 def converter_para_hcm(df):
-    df['moto'] = df['moto'] * 0.33
-    df['carro'] = df['carro'] * 1.00
-    df['cam_leve'] = df['cam_leve'] * 1.10
-    df['cam_pesado'] = df['cam_pesado'] * 1.00
-    df['especial'] = df['especial'] * 1.50
+    df['Passeio'] = df['carro'] * 1 + df['moto'] * 0.33
+    df['Pesados não articulados (SUT)'] = df['cam_leve'] * 1.1
+    df['Pesados articulados (TT)'] = df['cam_pesado'] * 1 + df['especial'] * 1.5
 
     # adiciona uma nova linha com a soma de cada coluna e a soma total
     df.loc['Total'] = df.sum(numeric_only=True)
 
     # adiciona uma coluna com a soma apenas dos valores de carro, moto, cam_leve, cam_pesado e especial
-    df['total_veiculos'] = df[['moto', 'carro', 'cam_leve', 'cam_pesado', 'especial']].sum(axis=1)
+    df['total_veiculos'] = df[['Passeio', 'Pesados não articulados (SUT)', 'Pesados articulados (TT)']].sum(axis=1)
 
     return df
 
-
 def exportar_para_excel(df, caminho_saida):
     df.to_excel(caminho_saida, index=True)
-
 
 def main():
     # diretório de entrada
@@ -43,6 +39,8 @@ def main():
 
         # converter os dados para o modelo HCM
         df = converter_para_hcm(df)
+        df['vel_media'] = df['vel_media'].astype(float)
+        df['total_veiculos'] = df['total_veiculos'].astype(float)
 
         nome_arquivo_saida = f'hcm_{arquivo.name}'
         caminho_completo_saida = diretorio_saida / nome_arquivo_saida
